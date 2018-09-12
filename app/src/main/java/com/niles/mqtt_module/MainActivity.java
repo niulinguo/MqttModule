@@ -8,8 +8,8 @@ import android.view.View;
 import com.blankj.utilcode.util.ConvertUtils;
 import com.niles.mqtt.MqttMessage;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -19,12 +19,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                count += 1;
+                publish(null);
+            }
+        }, 10000, 10000);
     }
 
     public void publish(View view) {
-        count += 1;
-
-        byte[] payload = MyApp.debugInfo("push lazy point");
+        byte[] payload = MyApp.debugInfo(String.valueOf(count));
         Log.e("payload", ConvertUtils.bytes2HexString(payload));
         ((MyApp) getApplication()).getMqttClientManager().
                 publish(MqttMessage.newBuilder()

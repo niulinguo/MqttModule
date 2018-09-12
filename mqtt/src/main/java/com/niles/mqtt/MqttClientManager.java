@@ -93,7 +93,7 @@ public class MqttClientManager {
                         mqttPublish.getMessage().getPayload(),
                         mqttPublish.getMessage().getQos(),
                         mqttPublish.getMessage().isRetained())) {
-                    mMyPersistence.removeMessage(mqttPublish.getMessage().getId());
+                    mMyPersistence.removeMessage(mqttPublish.getMessageId());
                 } else {
                     // 上传失败则停止上传
                     break;

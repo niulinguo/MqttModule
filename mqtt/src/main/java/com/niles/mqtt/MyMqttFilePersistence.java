@@ -90,16 +90,11 @@ public class MyMqttFilePersistence extends MqttDefaultFilePersistence {
         mqttMessage.setQos(message.getQos());
         mqttMessage.setRetained(message.isRetained());
         try {
-            mqttMessage.setId(getNextMessageId());
+            int msgId = getNextMessageId();
+            put(createPublishKey(msgId), new MqttPublish(message.getTopic(), mqttMessage));
         } catch (MqttException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
-        }
-        try {
-            put(createPublishKey(mqttMessage.getId()), new MqttPublish(message.getTopic(), mqttMessage));
-        } catch (MqttPersistenceException e) {
-            e.printStackTrace();
-            throw new RuntimeException("MqttDefaultFilePersistence put failure");
         }
     }
 
@@ -125,24 +120,15 @@ public class MyMqttFilePersistence extends MqttDefaultFilePersistence {
     }
 
     @Override
-    public void open(String clientId, String theConnection) throws MqttPersistenceException {
+    public synchronized void open(String clientId, String theConnection) throws MqttPersistenceException {
         super.open(clientId, theConnection);
         Enumeration keys = keys();
         String key;
         while (keys.hasMoreElements()) {
             key = (String) keys.nextElement();
-            MqttPersistable persistable = get(key);
-            MqttWireMessage message = null;
-            try {
-                message = restoreMessage(key, persistable);
-            } catch (MqttException e) {
-                e.printStackTrace();
-            }
-            if (message != null) {
-                if (key.startsWith(PERSISTENCE_PUBLISH_PREFIX)) {
-                    int messageId = message.getMessageId();
-                    inUseMsgIds.put(messageId, messageId);
-                }
+            if (key.startsWith(PERSISTENCE_PUBLISH_PREFIX)) {
+                int messageId = Integer.valueOf(key.substring(PERSISTENCE_PUBLISH_PREFIX.length()));
+                inUseMsgIds.put(messageId, messageId);
             }
         }
     }
@@ -162,7 +148,9 @@ public class MyMqttFilePersistence extends MqttDefaultFilePersistence {
             }
             if (message != null) {
                 if (key.startsWith(PERSISTENCE_PUBLISH_PREFIX)) {
-                    mqttPublishes.add((MqttPublish) message);
+                    MqttPublish mqttPublish = (MqttPublish) message;
+                    mqttPublish.setMessageId(Integer.valueOf(key.substring(PERSISTENCE_PUBLISH_PREFIX.length())));
+                    mqttPublishes.add(mqttPublish);
                 }
             }
         }
