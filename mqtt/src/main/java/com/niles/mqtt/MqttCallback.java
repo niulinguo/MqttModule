@@ -31,7 +31,7 @@ public class MqttCallback implements MqttCallbackExtended {
 
     @Override
     public void connectionLost(Throwable cause) {
-        mMqttLog.log(String.format(Locale.getDefault(), "connectionLost %s", cause.getMessage()));
+        mMqttLog.log(String.format(Locale.getDefault(), "connectionLost %s", cause == null ? "" : cause.getMessage()));
         mMqttConnHandler.changeConnStatus(MqttConnStatus.DISCONNECTED);
     }
 
