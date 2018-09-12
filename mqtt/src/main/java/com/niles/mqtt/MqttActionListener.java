@@ -75,17 +75,17 @@ public class MqttActionListener implements IMqttActionListener {
     }
 
     private void onConnectSuccess(IMqttToken asyncActionToken) {
-        mMqttLog.log(String.format(Locale.getDefault(), "onConnectSuccess Token:%s", asyncActionToken));
+        mMqttLog.log("onConnectSuccess");
         mMqttConnHandler.changeConnStatus(MqttConnStatus.CONNECTED);
     }
 
     private void onConnectFailure(IMqttToken asyncActionToken, Throwable exception) {
-        mMqttLog.log(String.format(Locale.getDefault(), "onConnectFailure Token:%s Exception:%s", asyncActionToken, exception));
+        mMqttLog.log(String.format(Locale.getDefault(), "onConnectFailure Exception:%s", exception));
         mMqttConnHandler.changeConnStatus(MqttConnStatus.ERROR);
     }
 
     private void onPublishSuccess(IMqttToken asyncActionToken) {
-        mMqttLog.log(String.format(Locale.getDefault(), "onPublishSuccess Token:%s", asyncActionToken));
+        mMqttLog.log(String.format(Locale.getDefault(), "onPublishSuccess %s", asyncActionToken.getMessageId()));
     }
 
     private void onPublishFailure(IMqttToken asyncActionToken, Throwable exception) {
@@ -107,7 +107,7 @@ public class MqttActionListener implements IMqttActionListener {
 
     private void onDisconnectFailure(IMqttToken asyncActionToken, Throwable exception) {
         mMqttLog.log(String.format(Locale.getDefault(), "onDisconnectFailure Token:%s Exception:%s", asyncActionToken, exception));
-        mMqttConnHandler.changeConnStatus(MqttConnStatus.CONNECTED);
+        mMqttConnHandler.changeConnStatus(MqttConnStatus.DISCONNECTED);
     }
 
     private void onUnsubscribeSuccess(IMqttToken asyncActionToken) {

@@ -127,7 +127,7 @@ public class MqttConfig {
         private boolean mAutomaticReconnect;
         private MqttLog mMqttLog;
         private boolean mBufferEnabled;
-        private int mBufferSize = 5000;
+        private int mBufferSize = 100000;
         private boolean mPersistBuffer;
         private boolean mDeleteOldestMessages;
 

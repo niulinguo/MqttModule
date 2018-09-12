@@ -42,6 +42,6 @@ public class MqttCallback implements MqttCallbackExtended {
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
-        mMqttLog.log(String.format(Locale.getDefault(), "deliveryComplete Token:%s", token));
+        mMqttLog.log(String.format(Locale.getDefault(), "deliveryComplete %s", token.getMessageId()));
     }
 }
