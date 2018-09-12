@@ -9,9 +9,12 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
+import org.eclipse.paho.client.mqttv3.internal.wire.MqttPublish;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
 import java.io.File;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -25,6 +28,7 @@ public class MqttClientManager {
     private final MqttLog mMqttLog;
     private final MqttAndroidClient mMqttAndroidClient;
     private boolean mIsMqttServiceStarted = false;
+    private MyMqttFilePersistence mMyPersistence;
     private MqttConnStatus mMqttConnStatus = MqttConnStatus.NONE;
     private final MqttConnHandler mMqttConnHandler = new MqttConnHandler() {
         @Override
@@ -52,7 +56,13 @@ public class MqttClientManager {
     public MqttClientManager(Application app, MqttConfig mqttConfig) {
         mMqttConfig = mqttConfig;
         mMqttLog = mqttConfig.getMqttLog();
-
+        mMyPersistence = new MyMqttFilePersistence(new File(app.getCacheDir(), "MyMqttPersistence").getAbsolutePath());
+        try {
+            mMyPersistence.open(mqttConfig.getClientId(), mqttConfig.getServerUri());
+        } catch (MqttPersistenceException e) {
+            e.printStackTrace();
+            throw new RuntimeException("MqttDefaultFilePersistence open failure");
+        }
         MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence(new File(app.getCacheDir(), "MqttPersistence").getAbsolutePath());
         mMqttAndroidClient = new MqttAndroidClient(app, mqttConfig.getServerUri(), mqttConfig.getClientId(), persistence);
         mMqttAndroidClient.setCallback(new MqttCallback(mMqttLog, mMqttConnHandler));
@@ -75,7 +85,23 @@ public class MqttClientManager {
     }
 
     private void onMqttConnected() {
-
+        try {
+            // mqtt连接成功，上传所有未被上传的消息
+            List<MqttPublish> allPublishMessage = mMyPersistence.getAllPublishMessage();
+            for (MqttPublish mqttPublish : allPublishMessage) {
+                if (publish(mqttPublish.getTopicName(),
+                        mqttPublish.getMessage().getPayload(),
+                        mqttPublish.getMessage().getQos(),
+                        mqttPublish.getMessage().isRetained())) {
+                    mMyPersistence.removeMessage(mqttPublish.getMessage().getId());
+                } else {
+                    // 上传失败则停止上传
+                    break;
+                }
+            }
+        } catch (MqttPersistenceException e) {
+            e.printStackTrace();
+        }
     }
 
     public void connect() {
@@ -125,35 +151,39 @@ public class MqttClientManager {
         mMqttAndroidClient.close();
     }
 
-    public boolean publish(MqttMessage message) {
+    public void publish(MqttMessage message) {
         if (!mIsMqttServiceStarted) {
             mMqttLog.log("Publish Failure, Mqtt Service UnStarted.");
-            return false;
+            mMyPersistence.put(message);
+            return;
         }
 
+        if (!publish(message.getTopic(),
+                message.getPayload(),
+                message.getQos(),
+                message.isRetained())) {
+            mMyPersistence.put(message);
+        }
+    }
+
+    private boolean publish(String topic, byte[] payload, int qos, boolean isRetained) {
         try {
-            IMqttDeliveryToken deliveryToken = mMqttAndroidClient.publish(message.getTopic(),
-                    message.getPayload(),
-                    message.getQos(),
-                    message.isRetained(),
+            IMqttDeliveryToken deliveryToken = mMqttAndroidClient.publish(topic,
+                    payload,
+                    qos,
+                    isRetained,
                     null,
                     new MqttActionListener(MqttAction.PUBLISH, mMqttLog, mMqttConnHandler));
-
 
             int messageId = deliveryToken.getMessageId();
             if (messageId == 0) {
                 // Delegate Token is null
                 mMqttLog.log("Publish Failure, Mqtt Unconnected.");
-
-                if (!mMqttAndroidClient.isConnected()) {
-                    mMqttLog.log(String.format(Locale.getDefault(), "Buffered Message Count %d", mMqttAndroidClient.getBufferedMessageCount()));
-                }
                 return false;
             } else {
                 mMqttLog.log(String.format(Locale.getDefault(), "Publish MessageId %s", messageId));
+                return true;
             }
-
-            return true;
         } catch (MqttException e) {
             e.printStackTrace();
             mMqttLog.log(String.format(Locale.getDefault(), "Publish Exception %s", e.getMessage()));
