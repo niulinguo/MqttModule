@@ -1,9 +1,12 @@
 package com.niles.mqtt_module;
 
 import android.app.Application;
+import android.os.Bundle;
+import android.util.Log;
 
 import com.blankj.utilcode.util.ConvertUtils;
 import com.blankj.utilcode.util.Utils;
+import com.niles.mqtt.DefaultMqttLog;
 import com.niles.mqtt.MqttClientManager;
 import com.niles.mqtt.MqttConfig;
 
@@ -73,6 +76,18 @@ public class MyApp extends Application {
                 .setServerUri(BuildConfig.SERVER_URI)
                 .setUsername(BuildConfig.USERNAME)
                 .setPassword(BuildConfig.PASSWORD)
+                .setMqttLog(new DefaultMqttLog() {
+                    @Override
+                    public void log(String tag, Bundle bundle) {
+                        if (BuildConfig.DEBUG) {
+                            if (bundle == null) {
+                                Log.i("MqttLog", "[" + tag + "]");
+                            } else {
+                                Log.i("MqttLog", "[" + tag + "]" + bundle.toString());
+                            }
+                        }
+                    }
+                })
                 .build());
 
         mMqttClientManager.connect();

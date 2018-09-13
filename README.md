@@ -19,7 +19,7 @@ allprojects {
 
 ``` Gradle
 dependencies {
-        implementation 'com.github.niulinguo:MqttModule:v1.0'
+        implementation 'com.github.niulinguo:MqttModule:v1.2'
 }
 ```
 

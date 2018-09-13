@@ -233,8 +233,9 @@ public class MqttConfig {
             return this;
         }
 
-        public void setMqttLog(MqttLog mqttLog) {
+        public Build setMqttLog(MqttLog mqttLog) {
             mMqttLog = mqttLog;
+            return this;
         }
 
         void check() {
