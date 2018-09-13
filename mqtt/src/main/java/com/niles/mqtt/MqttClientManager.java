@@ -56,14 +56,16 @@ public class MqttClientManager {
     public MqttClientManager(Application app, MqttConfig mqttConfig) {
         mMqttConfig = mqttConfig;
         mMqttLog = mqttConfig.getMqttLog();
-        mMyPersistence = new MyMqttFilePersistence(new File(app.getCacheDir(), "MyMqttPersistence").getAbsolutePath());
+        File cacheDir = app.getCacheDir();
+//        File cacheDir = new File(Environment.getExternalStorageDirectory(), "Mqtt");
+        mMyPersistence = new MyMqttFilePersistence(new File(cacheDir, "CacheMsg").getAbsolutePath());
         try {
             mMyPersistence.open(mqttConfig.getClientId(), mqttConfig.getServerUri());
         } catch (MqttPersistenceException e) {
             e.printStackTrace();
             throw new RuntimeException("MqttDefaultFilePersistence open failure");
         }
-        MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence(new File(app.getCacheDir(), "MqttPersistence").getAbsolutePath());
+        MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence(new File(cacheDir, "MqttCache").getAbsolutePath());
         mMqttAndroidClient = new MqttAndroidClient(app, mqttConfig.getServerUri(), mqttConfig.getClientId(), persistence);
         mMqttAndroidClient.setCallback(new MqttCallback(mMqttLog, mMqttConnHandler));
         mMqttLog.log(String.format(Locale.getDefault(), "Create Client(%s) ServerUri:%s", mqttConfig.getClientId(), mqttConfig.getServerUri()));
