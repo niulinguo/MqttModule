@@ -1,9 +1,9 @@
 package com.niles.mqtt;
 
+import android.os.Bundle;
+
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
-
-import java.util.Locale;
 
 /**
  * Created by Niles
@@ -75,46 +75,58 @@ public class MqttActionListener implements IMqttActionListener {
     }
 
     private void onConnectSuccess(IMqttToken asyncActionToken) {
-        mMqttLog.log("onConnectSuccess");
+        mMqttLog.log("onConnectSuccess", null);
         mMqttConnHandler.changeConnStatus(MqttConnStatus.CONNECTED);
     }
 
     private void onConnectFailure(IMqttToken asyncActionToken, Throwable exception) {
-        mMqttLog.log(String.format(Locale.getDefault(), "onConnectFailure Exception:%s", exception));
+        Bundle bundle = new Bundle();
+        bundle.putString("Exception", exception == null ? "" : exception.getMessage());
+        mMqttLog.log("onConnectFailure", bundle);
         mMqttConnHandler.changeConnStatus(MqttConnStatus.ERROR);
     }
 
     private void onPublishSuccess(IMqttToken asyncActionToken) {
-        mMqttLog.log(String.format(Locale.getDefault(), "onPublishSuccess %s", asyncActionToken.getMessageId()));
+        Bundle bundle = new Bundle();
+        bundle.putInt("MsgId", asyncActionToken.getMessageId());
+        mMqttLog.log("onPublishSuccess", bundle);
     }
 
     private void onPublishFailure(IMqttToken asyncActionToken, Throwable exception) {
-        mMqttLog.log(String.format(Locale.getDefault(), "onPublishFailure Token:%s Exception:%s", asyncActionToken, exception));
+        Bundle bundle = new Bundle();
+        bundle.putString("Exception", exception == null ? "" : exception.getMessage());
+        mMqttLog.log("onPublishFailure", bundle);
     }
 
     private void onSubscribeSuccess(IMqttToken asyncActionToken) {
-        mMqttLog.log(String.format(Locale.getDefault(), "onSubscribeSuccess Token:%s", asyncActionToken));
+        mMqttLog.log("onSubscribeSuccess", null);
     }
 
     private void onSubscribeFailure(IMqttToken asyncActionToken, Throwable exception) {
-        mMqttLog.log(String.format(Locale.getDefault(), "onSubscribeFailure Token:%s Exception:%s", asyncActionToken, exception));
+        Bundle bundle = new Bundle();
+        bundle.putString("Exception", exception == null ? "" : exception.getMessage());
+        mMqttLog.log("onSubscribeFailure", bundle);
     }
 
     private void onDisconnectSuccess(IMqttToken asyncActionToken) {
-        mMqttLog.log(String.format(Locale.getDefault(), "onDisconnectSuccess Token:%s", asyncActionToken));
+        mMqttLog.log("onDisconnectSuccess", null);
         mMqttConnHandler.changeConnStatus(MqttConnStatus.DISCONNECTED);
     }
 
     private void onDisconnectFailure(IMqttToken asyncActionToken, Throwable exception) {
-        mMqttLog.log(String.format(Locale.getDefault(), "onDisconnectFailure Token:%s Exception:%s", asyncActionToken, exception));
+        Bundle bundle = new Bundle();
+        bundle.putString("Exception", exception == null ? "" : exception.getMessage());
+        mMqttLog.log("onDisconnectFailure", bundle);
         mMqttConnHandler.changeConnStatus(MqttConnStatus.DISCONNECTED);
     }
 
     private void onUnsubscribeSuccess(IMqttToken asyncActionToken) {
-        mMqttLog.log(String.format(Locale.getDefault(), "onUnsubscribeSuccess Token:%s", asyncActionToken));
+        mMqttLog.log("onUnsubscribeSuccess", null);
     }
 
     private void onUnsubscribeFailure(IMqttToken asyncActionToken, Throwable exception) {
-        mMqttLog.log(String.format(Locale.getDefault(), "onUnsubscribeFailure Token:%s Exception:%s", asyncActionToken, exception));
+        Bundle bundle = new Bundle();
+        bundle.putString("Exception", exception == null ? "" : exception.getMessage());
+        mMqttLog.log("onUnsubscribeFailure", bundle);
     }
 }

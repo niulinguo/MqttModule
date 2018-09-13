@@ -1,12 +1,12 @@
 package com.niles.mqtt;
 
 import android.app.Application;
+import android.os.Bundle;
 import android.text.TextUtils;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
@@ -15,7 +15,6 @@ import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
 import java.io.File;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by Niles
@@ -68,7 +67,10 @@ public class MqttClientManager {
         MqttDefaultFilePersistence persistence = new MqttDefaultFilePersistence(new File(cacheDir, "MqttCache").getAbsolutePath());
         mMqttAndroidClient = new MqttAndroidClient(app, mqttConfig.getServerUri(), mqttConfig.getClientId(), persistence);
         mMqttAndroidClient.setCallback(new MqttCallback(mMqttLog, mMqttConnHandler));
-        mMqttLog.log(String.format(Locale.getDefault(), "Create Client(%s) ServerUri:%s", mqttConfig.getClientId(), mqttConfig.getServerUri()));
+        Bundle bundle = new Bundle();
+        bundle.putString("ServerUri", mqttConfig.getServerUri());
+        bundle.putString("ClientId", mqttConfig.getClientId());
+        mMqttLog.log("NewMqttClient", bundle);
     }
 
     private void onMqttServiceStarted() {
@@ -83,7 +85,9 @@ public class MqttClientManager {
         if (mMqttConfig.isTraceEnable()) {
             mMqttAndroidClient.setTraceCallback(new MqttTraceCallback(mMqttLog));
         }
-        mMqttLog.log(String.format(Locale.getDefault(), "Buffered Message Count %d", mMqttAndroidClient.getBufferedMessageCount()));
+        Bundle bundle = new Bundle();
+        bundle.putInt("Count", mMqttAndroidClient.getBufferedMessageCount());
+        mMqttLog.log("BufferedMessage", bundle);
     }
 
     /**
@@ -124,6 +128,7 @@ public class MqttClientManager {
         mMqttConnHandler.changeConnStatus(MqttConnStatus.CONNECTING);
 
         MqttConnectOptions options = new MqttConnectOptions();
+        options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
         options.setCleanSession(mMqttConfig.isCleanSession());
         options.setConnectionTimeout(mMqttConfig.getConnectionTimeout());
         options.setKeepAliveInterval(mMqttConfig.getKeepAliveInterval());
@@ -136,13 +141,16 @@ public class MqttClientManager {
             options.setPassword(mMqttConfig.getPassword().toCharArray());
         }
 
+        Bundle bundle = new Bundle();
+        bundle.putString("Username", mMqttConfig.getUsername());
+        bundle.putString("Password", mMqttConfig.getPassword());
         try {
-            IMqttToken mqttToken = mMqttAndroidClient.connect(options, null, new MqttActionListener(MqttAction.CONNECT, mMqttLog, mMqttConnHandler));
-            mMqttLog.log(String.format(Locale.getDefault(), "Connect Token:%s Username:%s Password:%s", mqttToken, mMqttConfig.getUsername(), mMqttConfig.getPassword()));
+            mMqttAndroidClient.connect(options, null, new MqttActionListener(MqttAction.CONNECT, mMqttLog, mMqttConnHandler));
         } catch (MqttException e) {
             e.printStackTrace();
-            mMqttLog.log(String.format(Locale.getDefault(), "Connect Exception %s", e.getMessage()));
+            bundle.putString("Exception", e.getMessage());
         }
+        mMqttLog.log("Connect", bundle);
     }
 
     public void disconnect() {
@@ -151,13 +159,15 @@ public class MqttClientManager {
         }
 
         mMqttConnHandler.changeConnStatus(MqttConnStatus.DISCONNECTING);
+
+        Bundle bundle = new Bundle();
         try {
-            IMqttToken mqttToken = mMqttAndroidClient.disconnect(null, new MqttActionListener(MqttAction.DISCONNECT, mMqttLog, mMqttConnHandler));
-            mMqttLog.log(String.format(Locale.getDefault(), "Disconnect Token:%s", mqttToken));
+            mMqttAndroidClient.disconnect(null, new MqttActionListener(MqttAction.DISCONNECT, mMqttLog, mMqttConnHandler));
         } catch (MqttException e) {
             e.printStackTrace();
-            mMqttLog.log(String.format(Locale.getDefault(), "Disconnect Exception %s", e.getMessage()));
+            bundle.putString("Exception", e.getMessage());
         }
+        mMqttLog.log("Disconnect", bundle);
     }
 
     public void close() {
@@ -169,7 +179,9 @@ public class MqttClientManager {
      */
     public void publish(MqttMessage message) {
         if (!mIsMqttServiceStarted) {
-            mMqttLog.log("Publish Failure, Mqtt Service UnStarted.");
+            Bundle bundle = new Bundle();
+            bundle.putString("Exception", "Mqtt Service UnStarted");
+            mMqttLog.log("Publish", bundle);
             mMyPersistence.put(message);
             return;
         }
@@ -214,15 +226,21 @@ public class MqttClientManager {
             int messageId = deliveryToken.getMessageId();
             if (messageId == 0) {
                 // Delegate Token is null
-                mMqttLog.log("Publish Failure, Mqtt Unconnected.");
+                Bundle bundle = new Bundle();
+                bundle.putString("Exception", "Mqtt Unconnected");
+                mMqttLog.log("Publish", bundle);
                 return false;
             } else {
-                mMqttLog.log(String.format(Locale.getDefault(), "Publish MessageId %s", messageId));
+                Bundle bundle = new Bundle();
+                bundle.putInt("MsgId", messageId);
+                mMqttLog.log("Publish", bundle);
                 return true;
             }
         } catch (MqttException e) {
             e.printStackTrace();
-            mMqttLog.log(String.format(Locale.getDefault(), "Publish Exception %s", e.getMessage()));
+            Bundle bundle = new Bundle();
+            bundle.putString("Exception", e.getMessage());
+            mMqttLog.log("Publish", bundle);
             return false;
         }
     }

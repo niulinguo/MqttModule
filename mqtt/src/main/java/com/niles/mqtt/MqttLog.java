@@ -1,5 +1,7 @@
 package com.niles.mqtt;
 
+import android.os.Bundle;
+
 /**
  * Created by Niles
  * Date 2018/8/30 09:27
@@ -7,6 +9,6 @@ package com.niles.mqtt;
  */
 public interface MqttLog {
 
-    void log(String msg);
+    void log(String tag, Bundle bundle);
 
 }

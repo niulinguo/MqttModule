@@ -1,10 +1,10 @@
 package com.niles.mqtt;
 
+import android.os.Bundle;
+
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-
-import java.util.Locale;
 
 /**
  * Created by Niles
@@ -23,7 +23,10 @@ public class MqttCallback implements MqttCallbackExtended {
 
     @Override
     public void connectComplete(boolean reconnect, String serverURI) {
-        mMqttLog.log(String.format(Locale.getDefault(), "connectComplete reconnect:%s serverURI:%s", reconnect, serverURI));
+        Bundle bundle = new Bundle();
+        bundle.putBoolean("Reconnect", reconnect);
+        bundle.putString("ServerUri", serverURI);
+        mMqttLog.log("connectComplete", bundle);
         if (reconnect) {
             mMqttConnHandler.changeConnStatus(MqttConnStatus.CONNECTED);
         }
@@ -31,17 +34,24 @@ public class MqttCallback implements MqttCallbackExtended {
 
     @Override
     public void connectionLost(Throwable cause) {
-        mMqttLog.log(String.format(Locale.getDefault(), "connectionLost %s", cause == null ? "" : cause.getMessage()));
+        Bundle bundle = new Bundle();
+        bundle.putString("Exception", cause == null ? "" : cause.getMessage());
+        mMqttLog.log("connectionLost", bundle);
         mMqttConnHandler.changeConnStatus(MqttConnStatus.DISCONNECTED);
     }
 
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
-        mMqttLog.log(String.format(Locale.getDefault(), "messageArrived topic:%s message:%s", topic, message));
+        Bundle bundle = new Bundle();
+        bundle.putString("Topic", topic);
+        bundle.putString("Msg", String.valueOf(message));
+        mMqttLog.log("messageArrived", bundle);
     }
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
-        mMqttLog.log(String.format(Locale.getDefault(), "deliveryComplete %s", token.getMessageId()));
+        Bundle bundle = new Bundle();
+        bundle.putInt("MsgId", token.getMessageId());
+        mMqttLog.log("deliveryComplete", bundle);
     }
 }

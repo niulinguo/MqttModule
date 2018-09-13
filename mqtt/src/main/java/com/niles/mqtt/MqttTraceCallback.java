@@ -1,8 +1,8 @@
 package com.niles.mqtt;
 
-import org.eclipse.paho.android.service.MqttTraceHandler;
+import android.os.Bundle;
 
-import java.util.Locale;
+import org.eclipse.paho.android.service.MqttTraceHandler;
 
 /**
  * Created by Niles
@@ -19,16 +19,26 @@ public class MqttTraceCallback implements MqttTraceHandler {
 
     @Override
     public void traceDebug(String tag, String message) {
-        mMqttLog.log(String.format(Locale.getDefault(), "traceDebug tag:%s message:%s", tag, message));
+        Bundle bundle = new Bundle();
+        bundle.putString("Tag", tag);
+        bundle.putString("Message", message);
+        mMqttLog.log("traceDebug", bundle);
     }
 
     @Override
     public void traceError(String tag, String message) {
-        mMqttLog.log(String.format(Locale.getDefault(), "traceError tag:%s message:%s", tag, message));
+        Bundle bundle = new Bundle();
+        bundle.putString("Tag", tag);
+        bundle.putString("Message", message);
+        mMqttLog.log("traceError", bundle);
     }
 
     @Override
     public void traceException(String tag, String message, Exception e) {
-        mMqttLog.log(String.format(Locale.getDefault(), "traceException tag:%s message:%s exception:%s", tag, message, e.getMessage()));
+        Bundle bundle = new Bundle();
+        bundle.putString("Tag", tag);
+        bundle.putString("Message", message);
+        bundle.putString("Exception", e == null ? "" : e.getMessage());
+        mMqttLog.log("traceException", bundle);
     }
 }

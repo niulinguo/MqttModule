@@ -1,5 +1,6 @@
 package com.niles.mqtt;
 
+import android.os.Bundle;
 import android.util.Log;
 
 /**
@@ -9,9 +10,13 @@ import android.util.Log;
  */
 public class DefaultMqttLog implements MqttLog {
     @Override
-    public void log(String msg) {
+    public void log(String tag, Bundle bundle) {
         if (BuildConfig.DEBUG) {
-            Log.i("MqttModule", msg);
+            if (bundle == null) {
+                Log.i("MqttLog", "[" + tag + "]");
+            } else {
+                Log.i("MqttLog", "[" + tag + "]" + bundle.toString());
+            }
         }
     }
 }
