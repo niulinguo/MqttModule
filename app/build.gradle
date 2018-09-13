@@ -18,10 +18,24 @@ android {
         buildConfigField 'String', 'USERNAME', "\"${properties.getProperty('USERNAME')}\""
         buildConfigField 'String', 'PASSWORD', "\"${properties.getProperty('PASSWORD')}\""
     }
-    buildTypes {
+    signingConfigs {
         release {
+            storeFile file("../sign")
+            storePassword "123456"
+            keyAlias "alilog"
+            keyPassword "123456"
+        }
+    }
+    buildTypes {
+        debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }
@@ -33,7 +47,8 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    implementation project(':mqtt')
+//    implementation project(':mqtt')
+    implementation 'com.github.niulinguo:MqttModule:v1.0'
 
     implementation 'com.blankj:utilcode:1.20.0'
 }
