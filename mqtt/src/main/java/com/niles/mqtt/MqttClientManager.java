@@ -84,24 +84,34 @@ public class MqttClientManager {
         mMqttLog.log(String.format(Locale.getDefault(), "Buffered Message Count %d", mMqttAndroidClient.getBufferedMessageCount()));
     }
 
-    private void onMqttConnected() {
+    /**
+     * 上传保存的消息
+     * 返回是否全部上传成功
+     * 如果没有保存的消息，返回true
+     */
+    private boolean publishSavedMessage() {
         try {
-            // mqtt连接成功，上传所有未被上传的消息
-            List<MqttPublish> allPublishMessage = mMyPersistence.getAllPublishMessage();
+            // 获取被保存的消息
+            List<MqttPublish> allPublishMessage = mMyPersistence.getSavedPublishMessage();
             for (MqttPublish mqttPublish : allPublishMessage) {
-                if (publish(mqttPublish.getTopicName(),
-                        mqttPublish.getMessage().getPayload(),
-                        mqttPublish.getMessage().getQos(),
-                        mqttPublish.getMessage().isRetained())) {
-                    mMyPersistence.removeMessage(mqttPublish.getMessageId());
+                if (publishWithResult(mqttPublish)) {
+                    // 上传成功则移除保存的消息
+                    mMyPersistence.removeMessage(mqttPublish);
                 } else {
                     // 上传失败则停止上传
-                    break;
+                    return false;
                 }
             }
         } catch (MqttPersistenceException e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
+    }
+
+    private void onMqttConnected() {
+        // 发布保存的消息
+        publishSavedMessage();
     }
 
     public void connect() {
@@ -116,6 +126,7 @@ public class MqttClientManager {
         options.setConnectionTimeout(mMqttConfig.getConnectionTimeout());
         options.setKeepAliveInterval(mMqttConfig.getKeepAliveInterval());
         options.setAutomaticReconnect(mMqttConfig.isAutomaticReconnect());
+        options.setMaxInflight(mMqttConfig.getMaxInflight());
         if (!TextUtils.isEmpty(mMqttConfig.getUsername())) {
             options.setUserName(mMqttConfig.getUsername());
         }
@@ -151,6 +162,9 @@ public class MqttClientManager {
         mMqttAndroidClient.close();
     }
 
+    /**
+     * 发送消息，如果没有发送成功则保存消息
+     */
     public void publish(MqttMessage message) {
         if (!mIsMqttServiceStarted) {
             mMqttLog.log("Publish Failure, Mqtt Service UnStarted.");
@@ -158,7 +172,13 @@ public class MqttClientManager {
             return;
         }
 
-        if (!publish(message.getTopic(),
+        // 首先上传保存的消息
+        if (!publishSavedMessage()) {
+            mMyPersistence.put(message);
+            return;
+        }
+
+        if (!publishWithResult(message.getTopic(),
                 message.getPayload(),
                 message.getQos(),
                 message.isRetained())) {
@@ -166,7 +186,21 @@ public class MqttClientManager {
         }
     }
 
-    private boolean publish(String topic, byte[] payload, int qos, boolean isRetained) {
+    /**
+     * 发送消息，如果没有发送成功返回 false
+     */
+    private boolean publishWithResult(MqttPublish mqttPublish) {
+        return publishWithResult(
+                mqttPublish.getTopicName(),
+                mqttPublish.getMessage().getPayload(),
+                mqttPublish.getMessage().getQos(),
+                mqttPublish.getMessage().isRetained());
+    }
+
+    /**
+     * 发送消息，如果没有发送成功返回 false
+     */
+    private boolean publishWithResult(String topic, byte[] payload, int qos, boolean isRetained) {
         try {
             IMqttDeliveryToken deliveryToken = mMqttAndroidClient.publish(topic,
                     payload,

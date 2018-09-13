@@ -47,13 +47,17 @@ public class MyMqttFilePersistence extends MqttDefaultFilePersistence {
         inUseMsgIds.remove(msgId);
     }
 
-    public void removeMessage(int msgId) {
+    private void removeMessage(int msgId) {
         try {
             remove(createPublishKey(msgId));
             releaseMessageId(msgId);
         } catch (MqttPersistenceException e) {
             e.printStackTrace();
         }
+    }
+
+    public void removeMessage(MqttPublish mqttPublish) {
+        removeMessage(mqttPublish.getMessageId());
     }
 
     /**
@@ -84,6 +88,9 @@ public class MyMqttFilePersistence extends MqttDefaultFilePersistence {
         return nextMsgId;
     }
 
+    /**
+     * 保存Mqtt消息
+     */
     public void put(MqttMessage message) {
         org.eclipse.paho.client.mqttv3.MqttMessage mqttMessage = new org.eclipse.paho.client.mqttv3.MqttMessage();
         mqttMessage.setPayload(message.getPayload());
@@ -91,7 +98,9 @@ public class MyMqttFilePersistence extends MqttDefaultFilePersistence {
         mqttMessage.setRetained(message.isRetained());
         try {
             int msgId = getNextMessageId();
-            put(createPublishKey(msgId), new MqttPublish(message.getTopic(), mqttMessage));
+            MqttPublish mqttPublish = new MqttPublish(message.getTopic(), mqttMessage);
+            mqttPublish.setMessageId(msgId);
+            put(createPublishKey(msgId), mqttPublish);
         } catch (MqttException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -122,35 +131,51 @@ public class MyMqttFilePersistence extends MqttDefaultFilePersistence {
     @Override
     public synchronized void open(String clientId, String theConnection) throws MqttPersistenceException {
         super.open(clientId, theConnection);
-        Enumeration keys = keys();
-        String key;
-        while (keys.hasMoreElements()) {
-            key = (String) keys.nextElement();
-            if (key.startsWith(PERSISTENCE_PUBLISH_PREFIX)) {
-                int messageId = Integer.valueOf(key.substring(PERSISTENCE_PUBLISH_PREFIX.length()));
-                inUseMsgIds.put(messageId, messageId);
-            }
-        }
-    }
 
-    public List<MqttPublish> getAllPublishMessage() throws MqttPersistenceException {
-        List<MqttPublish> mqttPublishes = new ArrayList<>();
+        // 初始化被保存的消息
         Enumeration keys = keys();
         String key;
+        MqttPersistable persistable;
+        MqttWireMessage message;
         while (keys.hasMoreElements()) {
             key = (String) keys.nextElement();
-            MqttPersistable persistable = get(key);
-            MqttWireMessage message = null;
+            persistable = get(key);
             try {
                 message = restoreMessage(key, persistable);
             } catch (MqttException e) {
                 e.printStackTrace();
+                message = null;
             }
             if (message != null) {
                 if (key.startsWith(PERSISTENCE_PUBLISH_PREFIX)) {
-                    MqttPublish mqttPublish = (MqttPublish) message;
-                    mqttPublish.setMessageId(Integer.valueOf(key.substring(PERSISTENCE_PUBLISH_PREFIX.length())));
-                    mqttPublishes.add(mqttPublish);
+                    int messageId = message.getMessageId();
+                    inUseMsgIds.put(messageId, messageId);
+                }
+            }
+        }
+    }
+
+    /**
+     * 获取保存的未发送的消息
+     */
+    public List<MqttPublish> getSavedPublishMessage() throws MqttPersistenceException {
+        List<MqttPublish> mqttPublishes = new ArrayList<>();
+        Enumeration keys = keys();
+        String key;
+        MqttPersistable persistable;
+        MqttWireMessage message;
+        while (keys.hasMoreElements()) {
+            key = (String) keys.nextElement();
+            persistable = get(key);
+            try {
+                message = restoreMessage(key, persistable);
+            } catch (MqttException e) {
+                e.printStackTrace();
+                message = null;
+            }
+            if (message != null) {
+                if (key.startsWith(PERSISTENCE_PUBLISH_PREFIX)) {
+                    mqttPublishes.add((MqttPublish) message);
                 }
             }
         }

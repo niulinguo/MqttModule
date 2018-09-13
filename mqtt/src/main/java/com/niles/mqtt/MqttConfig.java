@@ -23,6 +23,7 @@ public class MqttConfig {
     private final int mBufferSize;
     private final boolean mPersistBuffer;
     private final boolean mDeleteOldestMessages;
+    private final int mMaxInflight;
 
     MqttConfig(boolean traceEnable,
                String serverUri,
@@ -37,7 +38,8 @@ public class MqttConfig {
                boolean bufferEnabled,
                int bufferSize,
                boolean persistBuffer,
-               boolean deleteOldestMessages) {
+               boolean deleteOldestMessages,
+               int maxInflight) {
         mTraceEnable = traceEnable;
         mServerUri = serverUri;
         mClientId = clientId;
@@ -52,6 +54,7 @@ public class MqttConfig {
         mBufferSize = bufferSize;
         mPersistBuffer = persistBuffer;
         mDeleteOldestMessages = deleteOldestMessages;
+        mMaxInflight = maxInflight;
     }
 
     public static Build newBuilder() {
@@ -72,6 +75,10 @@ public class MqttConfig {
 
     public int getBufferSize() {
         return mBufferSize;
+    }
+
+    public int getMaxInflight() {
+        return mMaxInflight;
     }
 
     public boolean isBufferEnabled() {
@@ -127,7 +134,8 @@ public class MqttConfig {
         private boolean mAutomaticReconnect;
         private MqttLog mMqttLog;
         private boolean mBufferEnabled;
-        private int mBufferSize = 100000;
+        private int mBufferSize = 10000;
+        private int mMaxInflight = 10000;
         private boolean mPersistBuffer;
         private boolean mDeleteOldestMessages;
 
@@ -151,7 +159,13 @@ public class MqttConfig {
                     mBufferEnabled,
                     mBufferSize,
                     mPersistBuffer,
-                    mDeleteOldestMessages);
+                    mDeleteOldestMessages,
+                    mMaxInflight);
+        }
+
+        public Build setMaxInflight(int maxInflight) {
+            mMaxInflight = maxInflight;
+            return this;
         }
 
         public Build setTraceEnable(boolean traceEnable) {
