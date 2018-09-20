@@ -163,9 +163,8 @@ public class MqttConfig {
                     mMaxInflight);
         }
 
-        public Build setMaxInflight(int maxInflight) {
-            mMaxInflight = maxInflight;
-            return this;
+        public boolean isTraceEnable() {
+            return mTraceEnable;
         }
 
         public Build setTraceEnable(boolean traceEnable) {
@@ -173,24 +172,8 @@ public class MqttConfig {
             return this;
         }
 
-        public Build setPersistBuffer(boolean persistBuffer) {
-            mPersistBuffer = persistBuffer;
-            return this;
-        }
-
-        public Build setDeleteOldestMessages(boolean deleteOldestMessages) {
-            mDeleteOldestMessages = deleteOldestMessages;
-            return this;
-        }
-
-        public Build setBufferSize(int bufferSize) {
-            mBufferSize = bufferSize;
-            return this;
-        }
-
-        public Build setBufferEnabled(boolean bufferEnabled) {
-            mBufferEnabled = bufferEnabled;
-            return this;
+        public String getServerUri() {
+            return mServerUri;
         }
 
         public Build setServerUri(String serverUri) {
@@ -198,9 +181,17 @@ public class MqttConfig {
             return this;
         }
 
+        public String getClientId() {
+            return mClientId;
+        }
+
         public Build setClientId(String clientId) {
             mClientId = clientId;
             return this;
+        }
+
+        public String getUsername() {
+            return mUsername;
         }
 
         public Build setUsername(String username) {
@@ -208,9 +199,17 @@ public class MqttConfig {
             return this;
         }
 
+        public String getPassword() {
+            return mPassword;
+        }
+
         public Build setPassword(String password) {
             mPassword = password;
             return this;
+        }
+
+        public boolean isCleanSession() {
+            return mCleanSession;
         }
 
         public Build setCleanSession(boolean cleanSession) {
@@ -218,9 +217,17 @@ public class MqttConfig {
             return this;
         }
 
+        public int getConnectionTimeout() {
+            return mConnectionTimeout;
+        }
+
         public Build setConnectionTimeout(int connectionTimeout) {
             mConnectionTimeout = connectionTimeout;
             return this;
+        }
+
+        public int getKeepAliveInterval() {
+            return mKeepAliveInterval;
         }
 
         public Build setKeepAliveInterval(int keepAliveInterval) {
@@ -228,13 +235,66 @@ public class MqttConfig {
             return this;
         }
 
+        public boolean isAutomaticReconnect() {
+            return mAutomaticReconnect;
+        }
+
         public Build setAutomaticReconnect(boolean automaticReconnect) {
             mAutomaticReconnect = automaticReconnect;
             return this;
         }
 
+        public MqttLog getMqttLog() {
+            return mMqttLog;
+        }
+
         public Build setMqttLog(MqttLog mqttLog) {
             mMqttLog = mqttLog;
+            return this;
+        }
+
+        public boolean isBufferEnabled() {
+            return mBufferEnabled;
+        }
+
+        public Build setBufferEnabled(boolean bufferEnabled) {
+            mBufferEnabled = bufferEnabled;
+            return this;
+        }
+
+        public int getBufferSize() {
+            return mBufferSize;
+        }
+
+        public Build setBufferSize(int bufferSize) {
+            mBufferSize = bufferSize;
+            return this;
+        }
+
+        public int getMaxInflight() {
+            return mMaxInflight;
+        }
+
+        public Build setMaxInflight(int maxInflight) {
+            mMaxInflight = maxInflight;
+            return this;
+        }
+
+        public boolean isPersistBuffer() {
+            return mPersistBuffer;
+        }
+
+        public Build setPersistBuffer(boolean persistBuffer) {
+            mPersistBuffer = persistBuffer;
+            return this;
+        }
+
+        public boolean isDeleteOldestMessages() {
+            return mDeleteOldestMessages;
+        }
+
+        public Build setDeleteOldestMessages(boolean deleteOldestMessages) {
+            mDeleteOldestMessages = deleteOldestMessages;
             return this;
         }
 

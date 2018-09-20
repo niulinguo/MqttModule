@@ -59,14 +59,17 @@ public class MqttMessage {
                     mRetained);
         }
 
+        public String getTopic() {
+            return mTopic;
+        }
+
         public Build setTopic(String topic) {
             mTopic = topic;
             return this;
         }
 
-        public Build setRetained(boolean retained) {
-            mRetained = retained;
-            return this;
+        public int getQos() {
+            return mQos;
         }
 
         public Build setQos(int qos) {
@@ -74,8 +77,21 @@ public class MqttMessage {
             return this;
         }
 
+        public byte[] getPayload() {
+            return mPayload;
+        }
+
         public Build setPayload(byte[] payload) {
             mPayload = payload;
+            return this;
+        }
+
+        public boolean isRetained() {
+            return mRetained;
+        }
+
+        public Build setRetained(boolean retained) {
+            mRetained = retained;
             return this;
         }
 
