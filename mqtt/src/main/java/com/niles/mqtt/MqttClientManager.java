@@ -34,14 +34,13 @@ public class MqttClientManager {
         public void changeConnStatus(MqttConnStatus status) {
             mMqttConnStatus = status;
 
-            if (status == MqttConnStatus.CONNECTED || status == MqttConnStatus.ERROR) {
+            if (status == MqttConnStatus.CONNECTED) {
+
                 if (!mIsMqttServiceStarted) {
                     mIsMqttServiceStarted = true;
                     onMqttServiceStarted();
                 }
-            }
 
-            if (status == MqttConnStatus.CONNECTED) {
                 onMqttConnected();
             }
         }
@@ -118,6 +117,25 @@ public class MqttClientManager {
     private void onMqttConnected() {
         // 发布保存的消息
         publishSavedMessage();
+
+        // 订阅
+        List<MqttSubscribeInfo> mqttSubscribeInfos = mMqttConfig.getMqttSubscribeInfos();
+        for (MqttSubscribeInfo subscribeInfo : mqttSubscribeInfos) {
+            subscribe(subscribeInfo);
+        }
+    }
+
+    public void subscribe(MqttSubscribeInfo info) {
+        try {
+            mMqttAndroidClient.subscribe(
+                    info.getTopic(),
+                    info.getQos(),
+                    null,
+                    new MqttActionListener(MqttAction.SUBSCRIBE, mMqttLog, mMqttConnHandler)
+            );
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
     }
 
     public void connect() {

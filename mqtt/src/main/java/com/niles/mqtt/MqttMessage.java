@@ -14,10 +14,10 @@ public class MqttMessage {
     private final byte[] mPayload;
     private final boolean mRetained;
 
-    MqttMessage(String topic,
-                int qos,
-                byte[] payload,
-                boolean retained) {
+    private MqttMessage(String topic,
+                        int qos,
+                        byte[] payload,
+                        boolean retained) {
         mTopic = topic;
         mQos = qos;
         mPayload = payload;
@@ -49,7 +49,7 @@ public class MqttMessage {
         private String mTopic;
         private int mQos = 2;
         private byte[] mPayload;
-        private boolean mRetained;
+        private boolean mRetained = true;
 
         public MqttMessage build() {
             check();

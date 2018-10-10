@@ -81,7 +81,7 @@ public class MqttActionListener implements IMqttActionListener {
 
     private void onConnectFailure(IMqttToken asyncActionToken, Throwable exception) {
         Bundle bundle = new Bundle();
-        bundle.putString("Exception", exception == null ? "" : exception.getMessage());
+        putExceptionMessage(bundle, exception);
         mMqttLog.log("onConnectFailure", bundle);
         mMqttConnHandler.changeConnStatus(MqttConnStatus.ERROR);
     }
@@ -94,7 +94,7 @@ public class MqttActionListener implements IMqttActionListener {
 
     private void onPublishFailure(IMqttToken asyncActionToken, Throwable exception) {
         Bundle bundle = new Bundle();
-        bundle.putString("Exception", exception == null ? "" : exception.getMessage());
+        putExceptionMessage(bundle, exception);
         mMqttLog.log("onPublishFailure", bundle);
     }
 
@@ -104,7 +104,7 @@ public class MqttActionListener implements IMqttActionListener {
 
     private void onSubscribeFailure(IMqttToken asyncActionToken, Throwable exception) {
         Bundle bundle = new Bundle();
-        bundle.putString("Exception", exception == null ? "" : exception.getMessage());
+        putExceptionMessage(bundle, exception);
         mMqttLog.log("onSubscribeFailure", bundle);
     }
 
@@ -115,7 +115,7 @@ public class MqttActionListener implements IMqttActionListener {
 
     private void onDisconnectFailure(IMqttToken asyncActionToken, Throwable exception) {
         Bundle bundle = new Bundle();
-        bundle.putString("Exception", exception == null ? "" : exception.getMessage());
+        putExceptionMessage(bundle, exception);
         mMqttLog.log("onDisconnectFailure", bundle);
         mMqttConnHandler.changeConnStatus(MqttConnStatus.DISCONNECTED);
     }
@@ -126,7 +126,19 @@ public class MqttActionListener implements IMqttActionListener {
 
     private void onUnsubscribeFailure(IMqttToken asyncActionToken, Throwable exception) {
         Bundle bundle = new Bundle();
-        bundle.putString("Exception", exception == null ? "" : exception.getMessage());
+        putExceptionMessage(bundle, exception);
         mMqttLog.log("onUnsubscribeFailure", bundle);
+    }
+
+    private void putExceptionMessage(Bundle bundle, Throwable exception) {
+        if (exception != null) {
+            int index = 0;
+            do {
+                bundle.putString("Exception" + (index++), exception.getMessage());
+                exception = exception.getCause();
+            } while (exception != null);
+        } else {
+            bundle.putString("Exception", "Unknown");
+        }
     }
 }

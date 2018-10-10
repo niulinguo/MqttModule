@@ -2,6 +2,9 @@ package com.niles.mqtt;
 
 import android.text.TextUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Niles
  * Date 2018/8/30 13:39
@@ -24,6 +27,7 @@ public class MqttConfig {
     private final boolean mPersistBuffer;
     private final boolean mDeleteOldestMessages;
     private final int mMaxInflight;
+    private final List<MqttSubscribeInfo> mMqttSubscribeInfos;
 
     MqttConfig(boolean traceEnable,
                String serverUri,
@@ -39,7 +43,8 @@ public class MqttConfig {
                int bufferSize,
                boolean persistBuffer,
                boolean deleteOldestMessages,
-               int maxInflight) {
+               int maxInflight,
+               List<MqttSubscribeInfo> mqttSubscribeInfos) {
         mTraceEnable = traceEnable;
         mServerUri = serverUri;
         mClientId = clientId;
@@ -55,10 +60,15 @@ public class MqttConfig {
         mPersistBuffer = persistBuffer;
         mDeleteOldestMessages = deleteOldestMessages;
         mMaxInflight = maxInflight;
+        mMqttSubscribeInfos = mqttSubscribeInfos;
     }
 
     public static Build newBuilder() {
         return new Build();
+    }
+
+    public List<MqttSubscribeInfo> getMqttSubscribeInfos() {
+        return mMqttSubscribeInfos;
     }
 
     public boolean isDeleteOldestMessages() {
@@ -138,6 +148,7 @@ public class MqttConfig {
         private int mMaxInflight = 10000;
         private boolean mPersistBuffer;
         private boolean mDeleteOldestMessages;
+        private List<MqttSubscribeInfo> mMqttSubscribeInfos = new ArrayList<>();
 
         public MqttConfig build() {
             check();
@@ -160,7 +171,8 @@ public class MqttConfig {
                     mBufferSize,
                     mPersistBuffer,
                     mDeleteOldestMessages,
-                    mMaxInflight);
+                    mMaxInflight,
+                    mMqttSubscribeInfos);
         }
 
         public boolean isTraceEnable() {
@@ -250,6 +262,11 @@ public class MqttConfig {
 
         public Build setMqttLog(MqttLog mqttLog) {
             mMqttLog = mqttLog;
+            return this;
+        }
+
+        public Build addSubscribeInfo(MqttSubscribeInfo mqttSubscribeInfo) {
+            mMqttSubscribeInfos.add(mqttSubscribeInfo);
             return this;
         }
 

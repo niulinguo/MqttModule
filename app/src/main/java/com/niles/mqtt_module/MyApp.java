@@ -4,15 +4,14 @@ import android.app.Application;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.blankj.utilcode.util.ConvertUtils;
 import com.blankj.utilcode.util.Utils;
 import com.niles.mqtt.DefaultMqttLog;
 import com.niles.mqtt.MqttClientManager;
 import com.niles.mqtt.MqttConfig;
+import com.niles.mqtt.MqttSubscribeInfo;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.UUID;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by Niles
@@ -23,25 +22,35 @@ public class MyApp extends Application {
 
     private MqttClientManager mMqttClientManager;
 
-    public static byte[] debugInfo(String info) {
-        byte[] debugInfo = info.getBytes();
-        int size = 12 + 8 + 16 + 4 + debugInfo.length;
-        ByteBuffer byteBuffer = ByteBuffer.allocate(size);
-        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        byteBuffer.putShort((short) (size & 0xffff))
-                .put((byte) 0x01)
-                .put((byte) 0x31)
-                .put((byte) 0x03)
-                .put((byte) 0x00)
-                .put((byte) 0x01)
-                .put((byte) 0x00)
-                .putInt((int) (System.currentTimeMillis() / 1000));
-        byteBuffer.put(chars2Bytes("T0001212".toCharArray()))
-                .put(ConvertUtils.hexString2Bytes(UUID.randomUUID().toString().replace("-", "")))
-                .putInt((int) (System.currentTimeMillis() / 1000))
-                .put(debugInfo);
-        return byteBuffer.array();
+    public static byte[] debugInfo(int number) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("number", number);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject.toString().getBytes();
     }
+
+//    public static byte[] debugInfo(String info) {
+//        byte[] debugInfo = info.getBytes();
+//        int size = 12 + 8 + 16 + 4 + debugInfo.length;
+//        ByteBuffer byteBuffer = ByteBuffer.allocate(size);
+//        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+//        byteBuffer.putShort((short) (size & 0xffff))
+//                .put((byte) 0x01)
+//                .put((byte) 0x31)
+//                .put((byte) 0x03)
+//                .put((byte) 0x00)
+//                .put((byte) 0x01)
+//                .put((byte) 0x00)
+//                .putInt((int) (System.currentTimeMillis() / 1000));
+//        byteBuffer.put(chars2Bytes("T0001212".toCharArray()))
+//                .put(ConvertUtils.hexString2Bytes(UUID.randomUUID().toString().replace("-", "")))
+//                .putInt((int) (System.currentTimeMillis() / 1000))
+//                .put(debugInfo);
+//        return byteBuffer.array();
+//    }
 
     private static byte[] chars2Bytes(char[] chars) {
         int count = chars == null ? 0 : chars.length;
@@ -76,6 +85,9 @@ public class MyApp extends Application {
                 .setServerUri(BuildConfig.SERVER_URI)
                 .setUsername(BuildConfig.USERNAME)
                 .setPassword(BuildConfig.PASSWORD)
+                .addSubscribeInfo(new MqttSubscribeInfo.Builder()
+                        .setTopic("v1/devices/me/rpc/response/+")
+                        .build())
                 .setMqttLog(new DefaultMqttLog() {
                     @Override
                     public void log(String tag, Bundle bundle) {

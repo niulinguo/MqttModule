@@ -41,7 +41,7 @@ public class MqttCallback implements MqttCallbackExtended {
     }
 
     @Override
-    public void messageArrived(String topic, MqttMessage message) throws Exception {
+    public void messageArrived(String topic, MqttMessage message) {
         Bundle bundle = new Bundle();
         bundle.putString("Topic", topic);
         bundle.putString("Msg", String.valueOf(message));
