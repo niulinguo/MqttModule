@@ -86,7 +86,7 @@ public class MyApp extends Application {
                 .setUsername(BuildConfig.USERNAME)
                 .setPassword(BuildConfig.PASSWORD)
                 .addSubscribeInfo(new MqttSubscribeInfo.Builder()
-                        .setTopic("v1/devices/me/rpc/response/+")
+                        .setTopic("v1/devices/me/rpc/request/+")
                         .build())
                 .setMqttLog(new DefaultMqttLog() {
                     @Override
