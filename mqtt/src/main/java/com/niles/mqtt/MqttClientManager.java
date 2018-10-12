@@ -32,6 +32,10 @@ public class MqttClientManager {
     private final MqttConnHandler mMqttConnHandler = new MqttConnHandler() {
         @Override
         public void changeConnStatus(MqttConnStatus status) {
+            if (mMqttConnStatus == status) {
+                return;
+            }
+
             mMqttConnStatus = status;
 
             if (status == MqttConnStatus.CONNECTED) {

@@ -27,9 +27,7 @@ public class MqttCallback implements MqttCallbackExtended {
         bundle.putBoolean("Reconnect", reconnect);
         bundle.putString("ServerUri", serverURI);
         mMqttLog.log("connectComplete", bundle);
-        if (reconnect) {
-            mMqttConnHandler.changeConnStatus(MqttConnStatus.CONNECTED);
-        }
+        mMqttConnHandler.changeConnStatus(MqttConnStatus.CONNECTED);
     }
 
     @Override
